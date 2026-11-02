@@ -136,13 +136,60 @@ function pageFace(p,n){
  }
  if(p.photo){
   const img=f.querySelector("img"),ph=f.querySelector(".ph"),input=f.querySelector('input[type="file"]'),slotIndex=photoSlots.length;
-  const slot={key:"photo"+slotIndex,url:null,show(blob){if(slot.url)URL.revokeObjectURL(slot.url);slot.url=URL.createObjectURL(blob);img.src=slot.url;img.style.display="block";ph.style.display="none"},async set(file){const blob=await shrink(file);slot.show(blob);try{await idb("photos","readwrite",s=>s.put(blob,slot.key))}catch(e){console.error(e)}}};
-  input.addEventListener("change",()=>{const file=input.files?.[0];input.value="";if(file&&file.type.startsWith("image/"))slot.set(file)});photoSlots.push(slot)
+  const slot={
+  key:"photo"+slotIndex,
+  url:null,
+  show(blob){
+    if(slot.url)URL.revokeObjectURL(slot.url);
+    slot.url=URL.createObjectURL(blob);
+    img.src=slot.url;
+    img.style.display="block";
+    ph.style.display="none";
+  },
+  showRemote(src){
+    if(slot.url)URL.revokeObjectURL(slot.url);
+    slot.url=null;
+    img.src=src;
+    img.style.display="block";
+    ph.style.display="none";
+  },
+  async set(file){
+    const blob=await shrink(file);
+    slot.show(blob);
+    try{
+      await idb("photos","readwrite",s=>s.put(blob,slot.key));
+    }catch(e){console.error(e)}
+  }
+};
+  input.addEventListener("change",()=>{
+  const file=input.files?.[0];
+  input.value="";
+  if(file&&file.type.startsWith("image/"))slot.set(file);
+});
+
+photoSlots.push(slot);
  }
  return f
 }
 function addSheet(front,back,z){const s=document.createElement("div");s.className="page";s.style.zIndex=z;s.append(front,back);book.appendChild(s);sheets.push(s)}
 addSheet(coverFace(),backFace(),pages.length+1);pages.forEach((p,i)=>addSheet(pageFace(p,i+1),backFace(),pages.length-i));
+ 
+const hostedPhotos = [
+  "Sarah1.jpg",
+  "Sarah2.jpg",
+  "Sarah3.jpg",
+  "Sarah4.jpg",
+  "Sarah5.jpg",
+  "Sarah6.jpg",
+  "Sarah8.jpg",
+  "Sarah10.jpg",
+  "Sarah11.jpg"
+];
+
+photoSlots.forEach((slot, i) => {
+  slot.showRemote("images/" + hostedPhotos[i]);
+});
+
 const total=sheets.length,counter=$("counter"),prev=$("prev"),next=$("next"),bar=$("bar");
 function update(){sheets.forEach((s,i)=>{s.classList.toggle("flipped",i<current);s.classList.toggle("is-active",i===current);s.classList.toggle("far",i<current-1||i>current+1)});counter.textContent=current===0?"Cover":`Page ${current} / ${pages.length}`;prev.disabled=current===0;next.disabled=current>=total-1;bar.style.transform=`scaleX(${current/(total-1)})`}
 function go(d){const n=current+d;if(n<0||n>total-1)return;current=n;update()}
