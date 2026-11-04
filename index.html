@@ -200,6 +200,8 @@ let startX=null;const area=$("bookArea");area.addEventListener("touchstart",e=>{
 $("allPhotos").addEventListener("change",async e=>{const files=[...(e.target.files||[])].filter(f=>f.type.startsWith("image/"));e.target.value="";if(!files.length)return say("Choose photos to make this diary yours ♡");const n=Math.min(files.length,photoSlots.length);say("Tucking your photos in… ♡");for(let i=0;i<n;i++)await photoSlots[i].set(files[i]);say(`${n} photo(s) tucked into your diary ♡ saved in this browser`+(files.length>n?` · only the first ${n} fit`:""))});
 (async()=>{for(const slot of photoSlots){try{const blob=await idb("photos","readonly",s=>s.get(slot.key));if(blob)slot.show(blob)}catch(e){console.error(e)}}})();
 const musicBtn=$("music"),musicCard=$("musicCard"),audio=$("songAudio"),songFile=$("songFile"),songTitle=$("songTitle");let songUrl=null;
+ audio.src = "birthday-song.mp3";
+audio.load();
 function setSong(blob,name,autoplay){if(songUrl)URL.revokeObjectURL(songUrl);songUrl=URL.createObjectURL(blob);audio.src=songUrl;const label=(name||"Our song").replace(/\.[^.]+$/,"");songTitle.textContent="♫ "+label;musicBtn.textContent="♫ "+label;musicCard.classList.add("show");say("Saved in this browser until you change it ♡");if(autoplay)audio.play().catch(()=>say("Song saved ♡ Tap play when ready."))}
 musicBtn.addEventListener("click",()=>{musicCard.classList.add("show");if(!audio.src)return songFile.click();if(audio.paused)audio.play().catch(()=>say("Tap play in the player ♡"));else audio.pause()});
 $("changeSong").addEventListener("click",()=>songFile.click());$("musicClose").addEventListener("click",()=>musicCard.classList.remove("show"));
